@@ -35,7 +35,7 @@ void main() {
     printf("--------Sender of Go back N where N=7\n");
     listen(sockfd, 5);
 
-    len = sizeof(other_addr);
+    len = sizeof(serv_addr);
     connfd = accept(sockfd, (struct sockaddr *)&serv_addr, &len);
     if (connfd== -1) {
         perror("Accept failed");
