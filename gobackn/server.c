@@ -8,15 +8,15 @@
 #include <arpa/inet.h>
 
 void main() {
-    int server_sock, acpt_sock, ret_val, i = -1;
+    int sockfd, connfd, ret_val, i = -1;
     char msg[50] = "Received Frame", read_buff[50], write_buff[50];
     fd_set set;
     struct sockaddr_in serv_addr, other_addr;
     struct timeval timeout;
     socklen_t len;
 
-    server_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_sock == -1) {
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1) {
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -26,20 +26,20 @@ void main() {
     serv_addr.sin_port = htons(7004);
     serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(server_sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
+    if (bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
         perror("Binding failed");
-        close(server_sock);
+        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
     printf("--------Sender of Go back N where N=7\n");
-    listen(server_sock, 5);
+    listen(sockfd, 5);
 
     len = sizeof(other_addr);
-    acpt_sock = accept(server_sock, (struct sockaddr *)&other_addr, &len);
-    if (acpt_sock == -1) {
+    connfd = accept(sockfd, (struct sockaddr *)&serv_addr, &len);
+    if (connfd== -1) {
         perror("Accept failed");
-        close(server_sock);
+        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
@@ -49,7 +49,7 @@ void main() {
     strcpy(write_buff, msg);
     write_buff[strlen(msg)] = i + '0';
     printf("To Receiver -> Frame %d\n", i);
-    write(acpt_sock, write_buff, sizeof(write_buff));
+    write(connfd, write_buff, sizeof(write_buff));
 
     i = i + 1;
     sleep(1);
@@ -59,14 +59,14 @@ void main() {
     strcpy(write_buff, msg);
     write_buff[strlen(msg)] = i + '0';
     printf("To Receiver -> Frame %d\n", i);
-    write(acpt_sock, write_buff, sizeof(write_buff));
+    write(connfd, write_buff, sizeof(write_buff));
 
     FD_ZERO(&set);
-    FD_SET(acpt_sock, &set);
+    FD_SET(connfd, &set);
     timeout.tv_sec = 2;
     timeout.tv_usec = 0;
 
-    ret_val = select(acpt_sock + 1, &set, NULL, NULL, &timeout);
+    ret_val = select(connfd + 1, &set, NULL, NULL, &timeout);
     if (ret_val == -1) {
         perror("Error in select");
     } else if (ret_val == 0) {
@@ -75,7 +75,7 @@ void main() {
         i = i - 2;
         goto zero;
     } else {
-        read(acpt_sock, read_buff, sizeof(read_buff));
+        read(connfd, read_buff, sizeof(read_buff));
         if ((i == 6) || (i == 4) || (i == 1)) {
             printf("From Receiver <- %s CUMULATIVE ACKNOWLEDGEMENT\n", read_buff);
         } else {
@@ -91,6 +91,6 @@ void main() {
         if ((i < 8) || (i != 5)) goto one;
     }
 
-    close(acpt_sock);
-    close(server_sock);
+    close(sockfd);
+    close(connfd);
 }
