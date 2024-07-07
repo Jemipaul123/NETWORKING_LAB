@@ -7,24 +7,24 @@
 #include <arpa/inet.h>
 
 void main() {
-    int cli_sock, i, j, flag = 1;
+    int sockfd, i, j, flag = 1;
     char msg1[50] = "ACK", write_buff[50], read_buff[100];
-    struct sockaddr_in client;
+    struct sockaddr_in serv_addr;
 
-    cli_sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (cli_sock == -1) {
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1) {
         perror("Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    memset(&client, 0, sizeof(client));
-    client.sin_family = AF_INET;
-    client.sin_port = htons(7004);
-    client.sin_addr.s_addr = inet_addr("127.0.0.1");
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(7004);
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    if (connect(cli_sock, (struct sockaddr *)&client, sizeof(client)) == -1) {
+    if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr) )== -1) {
         perror("Connection failed");
-        close(cli_sock);
+        close(sockfd);
         exit(EXIT_FAILURE);
     }
 
@@ -36,21 +36,21 @@ void main() {
 
         if (i == 5 && flag == 1) {
             flag = 0;
-            read(cli_sock, read_buff, sizeof(read_buff));
+            read(sockfd, read_buff, sizeof(read_buff));
         }
-        read(cli_sock, read_buff, sizeof(read_buff));
+        read(sockfd, read_buff, sizeof(read_buff));
         if (read_buff[strlen(read_buff) - 1] != i + '0') {
             printf("\n----- PACKET FROM SENDER %d LOST - %d RECEIVED OUT OF ORDER - DISCARDING -----\n", i, i + 1);
             i--;
         } else {
             if (i == 0) {
                 printf(" -> %s\n", read_buff);
-                read(cli_sock, read_buff, sizeof(read_buff));
+                read(sockfd, read_buff, sizeof(read_buff));
                 i++;
             }
             printf(" -> %s\n", read_buff);
             if ((i == 5) || (i == 3)) {
-                read(cli_sock, read_buff, sizeof(read_buff));
+                read(sockfd, read_buff, sizeof(read_buff));
                 printf(" -> %s\n", read_buff);
                 i++;
             }
@@ -64,9 +64,9 @@ void main() {
             printf("\n-----------------------------------------------------\n");
             strcpy(write_buff, msg1);
             write_buff[strlen(msg1)] = j + '0';
-            write(cli_sock, write_buff, sizeof(write_buff));
+            write(sockfd, write_buff, sizeof(write_buff));
         }
     }
 
-    close(cli_sock);
+    close(sockfd);
 }
