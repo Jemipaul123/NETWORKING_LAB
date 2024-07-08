@@ -34,22 +34,32 @@ int main() {
     printf("Listening...\n");
 while(1){
     // Receive message from client
+    
     if (recvfrom(sockfd, (char*)&data, sizeof(data), 0, (struct sockaddr*)&cli, &client_struct_length) < 0) {
         printf("Couldn't receive\n");
         exit(1);
     }
-    printf("Message from client: %d\n", data);
+    printf("Data from the client %d\n", data);
 
     // Copy client's message to server's response
-    printf("enter the acknowledgement \n");
+    printf("Enter the acknowledgement \n");
     scanf("%d",&ack);
+    printf("acknowledgement is sent to the client\n");
 
     // Send message back to client
     if (sendto(sockfd, (char*)&ack, sizeof(ack), 0, (struct sockaddr *)&cli, client_struct_length) < 0) {
         printf("Can't send\n");
         exit(1);
-    }}
-
+    }
+     if(ack==-1)
+  {
+  break;
+  }
+    
+    
+    
+    }
+ 
     // Close the socket
     close(sockfd);
 
