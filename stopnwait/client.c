@@ -30,6 +30,7 @@ int main() {
     while(ack>0){
     printf("Enter a data");
     scanf("%d",&data);
+    printf("Data is sent to server\n");
 
     // Send message to server
     if (sendto(clientfd, (char *)&data, sizeof(data), 0, (struct sockaddr *)&servaddr, server_struct_length) < 0) {
@@ -38,12 +39,15 @@ int main() {
     }
 
     // Receive message from server
-    if (recvfrom(clientfd, (char*)&ack, sizeof(servmsg), 0, (struct sockaddr*)&servaddr, &server_struct_length) < 0) {
+    if (recvfrom(clientfd, (char*)&ack, sizeof(ack), 0, (struct sockaddr*)&servaddr, &server_struct_length) < 0) {
         printf("Couldn't receive\n");
         exit(1);
         
         if(ack==-1)
-        { printf("the packet %d has recieved negative acknowledgemt hence stopping\n",data);
+        { 
+        data=-1;
+        sendto(clientfd, (char *)&data, sizeof(data), 0, (struct sockaddr *)&servaddr, server_struct_length);
+        printf("the packet %d has recieved negative acknowledgemt hence stopping\n",data);
         exit(1);
         break;
         
