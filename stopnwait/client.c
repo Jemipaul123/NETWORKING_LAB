@@ -32,7 +32,7 @@ int main() {
     scanf("%d",&data);
 
     // Send message to server
-    if (sendto(clientfd, (char *)&data, strlen(climsg), 0, (struct sockaddr *)&servaddr, server_struct_length) < 0) {
+    if (sendto(clientfd, (char *)&data, sizeof(data), 0, (struct sockaddr *)&servaddr, server_struct_length) < 0) {
         printf("Can't send\n");
         exit(1);
     }
